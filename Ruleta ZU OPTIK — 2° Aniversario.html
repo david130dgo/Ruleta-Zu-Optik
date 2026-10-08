@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Ruleta ZU OPTIK — 2° Aniversario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#f4ece0;
+    --gold:#bd8538;
+    --gold-dark:#8f652a;
+    --gold-light:#d9a962;
+    --olive:#7a8471;
+    --olive-light:#9aa693;
+    --brown:#7b3f00;
+    --brown-light:#a5643f;
+    --gray:#6b7280;
+    --ink:#332a1f;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Montserrat',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .stage{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 40px;
+    text-align:center;
+  }
+  .eyebrow{
+    font-size:13px;
+    letter-spacing:0.04em;
+    color:var(--gold-dark);
+    margin:0 0 2px;
+  }
+  h1{
+    font-family:'Libre Baskerville',serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:clamp(24px,6vw,32px);
+    margin:0 0 4px;
+    color:var(--ink);
+  }
+  .sub{
+    font-size:14px;
+    color:var(--gray);
+    margin:0 0 26px;
+    max-width:320px;
+  }
+  .wheel-wrap{
+    position:relative;
+    width:min(88vw,340px);
+    aspect-ratio:1/1;
+    margin-bottom:26px;
+  }
+  .pointer{
+    position:absolute;
+    top:-6px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:16px solid transparent;
+    border-right:16px solid transparent;
+    border-top:26px solid var(--gold-dark);
+    z-index:5;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,0.25));
+  }
+  .wheel-svg{
+    width:100%;
+    height:100%;
+    display:block;
+    transform-origin:50% 50%;
+    transition:transform 6s cubic-bezier(0.17,0.67,0.12,0.99);
+    filter:drop-shadow(0 6px 18px rgba(51,42,31,0.25));
+  }
+  .hub{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:20%;
+    height:20%;
+    background:var(--cream);
+    border:3px solid var(--gold-dark);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    z-index:4;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .hub svg{width:55%;height:55%;}
+  .spin-btn{
+    font-family:'Montserrat',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--white);
+    background:var(--gold-dark);
+    border:none;
+    padding:15px 40px;
+    border-radius:30px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+    box-shadow:0 4px 14px rgba(143,101,42,0.35);
+    transition:transform .15s ease, opacity .2s ease;
+  }
+  .spin-btn:active{transform:scale(0.97);}
+  .spin-btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+  .result-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(51,42,31,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:20;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .result-overlay.show{opacity:1;pointer-events:auto;}
+  .result-card{
+    background:var(--white);
+    border-radius:18px;
+    padding:32px 26px;
+    max-width:320px;
+    width:100%;
+    text-align:center;
+    transform:translateY(12px) scale(0.96);
+    transition:transform .3s ease;
+  }
+  .result-overlay.show .result-card{transform:translateY(0) scale(1);}
+  .result-label{
+    font-size:12px;
+    color:var(--gray);
+    margin:0 0 8px;
+  }
+  .result-prize{
+    font-family:'Libre Baskerville',serif;
+    font-style:italic;
+    font-size:26px;
+    color:var(--gold-dark);
+    margin:0 0 22px;
+    line-height:1.25;
+  }
+  .result-actions{display:flex;flex-direction:column;gap:10px;}
+  .btn-primary,.btn-secondary{
+    font-family:'Montserrat',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    padding:12px;
+    border-radius:24px;
+    border:none;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--gold-dark);color:var(--white);}
+  .btn-secondary{background:transparent;color:var(--gray);border:1px solid #ddd4c4;}
+
+  .panel-toggle{
+    margin-top:18px;
+    font-size:13px;
+    color:var(--gray);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .panel{
+    margin-top:14px;
+    background:var(--white);
+    border-radius:14px;
+    padding:16px 18px;
+    width:min(88vw,340px);
+    display:none;
+    text-align:left;
+  }
+  .panel.open{display:block;}
+  .panel h2{
+    font-family:'Montserrat',sans-serif;
+    font-size:13px;
+    font-weight:700;
+    margin:0 0 10px;
+    color:var(--ink);
+  }
+  .panel-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:5px 0;
+    border-bottom:1px solid #f0e9db;
+    color:var(--ink);
+  }
+  .panel-row:last-of-type{border-bottom:none;}
+  .panel-total{
+    margin-top:10px;
+    font-size:12.5px;
+    color:var(--gray);
+  }
+  .reset-btn{
+    margin-top:14px;
+    font-size:12.5px;
+    color:var(--brown);
+    background:none;
+    border:1px solid #e8ddc8;
+    padding:8px 14px;
+    border-radius:16px;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <p class="eyebrow">2° Aniversario</p>
+  <h1>Ruleta de premios ZU OPTIK</h1>
+  <p class="sub">Gira una vez por cada compra realizada durante la semana del aniversario.</p>
+
+  <div class="wheel-wrap">
+    <div class="pointer"></div>
+    <svg id="wheelSvg" class="wheel-svg" viewBox="0 0 400 400"></svg>
+    <div class="hub">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2 L14 9 L21 9 L15.5 13.5 L17.5 21 L12 16.5 L6.5 21 L8.5 13.5 L3 9 L10 9 Z" fill="#bd8538"/>
+      </svg>
+    </div>
+  </div>
+
+  <button class="spin-btn" id="spinBtn">Girar la ruleta</button>
+
+  <button class="panel-toggle" id="panelToggle">Ver resumen de premios entregados</button>
+  <div class="panel" id="panel">
+    <h2>Historial de esta ruleta</h2>
+    <div id="panelRows"></div>
+    <p class="panel-total" id="panelTotal">0 giros registrados</p>
+    <button class="reset-btn" id="resetBtn">Reiniciar contador</button>
+  </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <p class="result-label">¡Felicidades! Tu premio es:</p>
+    <p class="result-prize" id="resultPrizeText">—</p>
+    <div class="result-actions">
+      <button class="btn-primary" id="confirmBtn">Confirmar entrega</button>
+      <button class="btn-secondary" id="cancelBtn">Cerrar sin confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Configuración de premios (ajusta aquí si cambian las probabilidades) ----
+const prizes = [
+  { name: "10% de descuento",        weight: 22, color: "#bd8538" }, // gold — descuento
+  { name: "Donitas ZU OPTIK",        weight: 17, color: "#a5643f" }, // brown light — físico
+  { name: "15% de descuento",        weight: 13, color: "#d9a962" }, // gold light — descuento
+  { name: "Kit de limpieza ZU OPTIK", weight: 17, color: "#7a8471" }, // olive — físico
+  { name: "20% de descuento",        weight: 6,  color: "#8f652a" }, // gold dark — descuento
+  { name: "Estuche ZU OPTIK",        weight: 3,  color: "#7b3f00" }, // brown — físico
+  { name: "Otra oportunidad",        weight: 22, color: "#9aa693" }  // olive light — comodín
+];
+
+const svgNS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("wheelSvg");
+const cx = 200, cy = 200, r = 195;
+const segAngle = 360 / prizes.length;
+
+function polar(cx, cy, radius, angleDeg){
+  const rad = (angleDeg - 90) * Math.PI / 180 + Math.PI/2; // 0deg = top, clockwise
+  return {
+    x: cx + radius * Math.sin(angleDeg * Math.PI/180),
+    y: cy - radius * Math.cos(angleDeg * Math.PI/180)
+  };
+}
+
+prizes.forEach((p, i) => {
+  const a1 = i * segAngle;
+  const a2 = a1 + segAngle;
+  const mid = a1 + segAngle/2;
+  const p1 = polar(cx, cy, r, a1);
+  const p2 = polar(cx, cy, r, a2);
+  const largeArc = segAngle > 180 ? 1 : 0;
+
+  const path = document.createElementNS(svgNS, "path");
+  path.setAttribute("d", `M ${cx} ${cy} L ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} Z`);
+  path.setAttribute("fill", p.color);
+  path.setAttribute("stroke", "#f4ece0");
+  path.setAttribute("stroke-width", "3");
+  svg.appendChild(path);
+
+  // Ajuste de línea por presupuesto de caracteres — leyenda siempre horizontal
+  function wrapLabel(name, maxCharsPerLine){
+    const words = name.split(" ");
+    const lines = [];
+    let current = "";
+    words.forEach(w => {
+      const candidate = current ? current + " " + w : w;
+      if (candidate.length <= maxCharsPerLine || current === "") {
+        current = candidate;
+      } else {
+        lines.push(current);
+        current = w;
+      }
+    });
+    if (current) lines.push(current);
+    return lines;
+  }
+
+  const labelPos = polar(cx, cy, r * 0.62, mid);
+  const lines = wrapLabel(p.name, 8);
+  const fontSize = lines.length >= 3 ? 9.5 : (lines.length === 2 ? 11 : 12.5);
+  const lineHeight = fontSize + 1.5;
+  const startDy = -((lines.length - 1) * lineHeight) / 2;
+
+  const textEl = document.createElementNS(svgNS, "text");
+  textEl.setAttribute("x", labelPos.x.toFixed(2));
+  textEl.setAttribute("y", labelPos.y.toFixed(2));
+  textEl.setAttribute("text-anchor", "middle");
+  textEl.setAttribute("fill", "#ffffff");
+  textEl.setAttribute("font-family", "Montserrat, sans-serif");
+  textEl.setAttribute("font-weight", "600");
+  textEl.setAttribute("font-size", fontSize);
+  textEl.style.filter = "drop-shadow(0 1px 1px rgba(0,0,0,0.35))";
+
+  lines.forEach((line, li) => {
+    const tspan = document.createElementNS(svgNS, "tspan");
+    tspan.setAttribute("x", labelPos.x.toFixed(2));
+    tspan.setAttribute("dy", li === 0 ? startDy : lineHeight);
+    tspan.textContent = line;
+    textEl.appendChild(tspan);
+  });
+
+  svg.appendChild(textEl);
+});
+
+// ---- Lógica de giro ponderado ----
+let currentRotation = 0;
+let spinning = false;
+
+function pickWeightedIndex(){
+  const total = prizes.reduce((s,p) => s + p.weight, 0);
+  let roll = Math.random() * total;
+  for (let i = 0; i < prizes.length; i++){
+    if (roll < prizes[i].weight) return i;
+    roll -= prizes[i].weight;
+  }
+  return prizes.length - 1;
+}
+
+const spinBtn = document.getElementById("spinBtn");
+const resultOverlay = document.getElementById("resultOverlay");
+const resultPrizeText = document.getElementById("resultPrizeText");
+const confirmBtn = document.getElementById("confirmBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+
+let pendingIndex = null;
+
+spinBtn.addEventListener("click", () => {
+  if (spinning) return;
+  spinning = true;
+  spinBtn.disabled = true;
+
+  const index = pickWeightedIndex();
+  pendingIndex = index;
+  const segStart = index * segAngle;
+  const segCenter = segStart + segAngle/2;
+  const jitter = (Math.random() - 0.5) * (segAngle * 0.5);
+  const targetAbsolute = (360 - (segCenter + jitter) + 360) % 360;
+
+  const currentMod = ((currentRotation % 360) + 360) % 360;
+  let delta = targetAbsolute - currentMod;
+  if (delta < 0) delta += 360;
+  const extraSpins = 5 * 360;
+  currentRotation += delta + extraSpins;
+
+  svg.style.transform = `rotate(${currentRotation}deg)`;
+
+  setTimeout(() => {
+    spinning = false;
+    resultPrizeText.textContent = prizes[index].name;
+    resultOverlay.classList.add("show");
+  }, 6100);
+});
+
+// ---- Historial persistente (localStorage del navegador de la tablet) ----
+const STORAGE_KEY = "zuoptik-ruleta-historial";
+async function loadHistory(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){
+    console.error("No se pudo leer el historial", e);
+    return {};
+  }
+}
+async function saveHistory(hist){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(hist));
+  }catch(e){ console.error("No se pudo guardar el historial", e); }
+}
+async function renderPanel(){
+  const hist = await loadHistory();
+  const rowsEl = document.getElementById("panelRows");
+  const totalEl = document.getElementById("panelTotal");
+  rowsEl.innerHTML = "";
+  let total = 0;
+  prizes.forEach(p => {
+    const count = hist[p.name] || 0;
+    total += count;
+    const row = document.createElement("div");
+    row.className = "panel-row";
+    row.innerHTML = `<span>${p.name}</span><span>${count}</span>`;
+    rowsEl.appendChild(row);
+  });
+  totalEl.textContent = `${total} giro${total === 1 ? "" : "s"} registrado${total === 1 ? "" : "s"}`;
+}
+
+confirmBtn.addEventListener("click", async () => {
+  if (pendingIndex !== null){
+    const hist = await loadHistory();
+    const name = prizes[pendingIndex].name;
+    hist[name] = (hist[name] || 0) + 1;
+    await saveHistory(hist);
+    await renderPanel();
+  }
+  resultOverlay.classList.remove("show");
+  spinBtn.disabled = false;
+  pendingIndex = null;
+});
+
+cancelBtn.addEventListener("click", () => {
+  resultOverlay.classList.remove("show");
+  spinBtn.disabled = false;
+  pendingIndex = null;
+});
+
+const panelToggle = document.getElementById("panelToggle");
+const panel = document.getElementById("panel");
+panelToggle.addEventListener("click", async () => {
+  panel.classList.toggle("open");
+  panelToggle.textContent = panel.classList.contains("open") ? "Ocultar resumen" : "Ver resumen de premios entregados";
+  if (panel.classList.contains("open")) await renderPanel();
+});
+
+const resetBtn = document.getElementById("resetBtn");
+let resetArmed = false;
+let resetArmTimeout = null;
+
+resetBtn.addEventListener("click", async () => {
+  if (!resetArmed){
+    resetArmed = true;
+    resetBtn.textContent = "Toca de nuevo para confirmar";
+    resetArmTimeout = setTimeout(() => {
+      resetArmed = false;
+      resetBtn.textContent = "Reiniciar contador";
+    }, 3000);
+    return;
+  }
+  clearTimeout(resetArmTimeout);
+  resetArmed = false;
+  resetBtn.textContent = "Reiniciar contador";
+  await saveHistory({});
+  await renderPanel();
+});
+
+renderPanel();
+</script>
+</body>
+</html>
